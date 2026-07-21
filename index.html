@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyanite Studio — Cyanotype Workshop Jakarta | Learn Alternative Photography</title>
+    <meta name="description" content="Hands-on cyanotype printing workshops in Jakarta. No experience needed — learn to print with sunlight, chemistry, and curiosity. From IDR 450k.">
+    <link rel="canonical" href="https://cyanite.pages.dev/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Cyanite Studio — Cyanotype Workshop Jakarta">
+    <meta property="og:description" content="Hands-on cyanotype printing workshops. No darkroom needed — just sunlight, chemistry, and curiosity.">
+    <meta property="og:url" content="https://cyanite.pages.dev/">
+    <meta property="og:site_name" content="Cyanite Studio">
+    <meta property="og:locale" content="en_ID">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Cyanite Studio — Cyanotype Workshop Jakarta">
+    <meta name="twitter:description" content="Hands-on cyanotype printing workshops. No darkroom needed — just sunlight, chemistry, and curiosity.">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    [{
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Cyanite Studio",
+      "description": "Cyanotype and alternative photography workshops in Jakarta",
+      "url": "https://cyanite.pages.dev",
+      "sameAs": ["https://www.instagram.com/cyanite.studio/"],
+      "address": { "@type": "PostalAddress", "addressLocality": "Jakarta", "addressCountry": "ID" },
+      "priceRange": "IDR 450k - 1.6M"
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": "Cyanotype Introduction Workshop",
+      "description": "Your first cyanotype. Learn the chemistry, coat your paper, expose under the sun, and walk away with finished prints.",
+      "provider": { "@type": "Organization", "name": "Cyanite Studio", "url": "https://cyanite.pages.dev" },
+      "offers": { "@type": "Offer", "price": "450000", "priceCurrency": "IDR", "availability": "https://schema.org/InStock" },
+      "hasCourseInstance": { "@type": "CourseInstance", "courseMode": "onsite", "duration": "PT3H" }
+    }]
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --prussian: #003153;
+            --prussian-deep: #001a2e;
+            --prussian-light: #004d80;
+            --cyan-print: #2a7ab5;
+            --cream: #f5f0e8;
+            --cream-dark: #e8e0d4;
+            --bone: #faf7f2;
+            --gold: #c9a96e;
+            --text-light: #f5f0e8;
+            --text-dark: #1a1a1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--prussian-deep);
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        /* Grain overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0.7;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.4s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(0, 26, 46, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 1rem 3rem;
+        }
+
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: var(--cream);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            letter-spacing: 0.02em;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 1.5px;
+            background: var(--cream);
+            margin: 5px 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(4px, 4px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(4px, -4px);
+        }
+
+        .nav-cta {
+            background: var(--cream);
+            color: var(--prussian-deep);
+            padding: 0.6rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(245, 240, 232, 0.2);
+            opacity: 1 !important;
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 6rem 2rem;
+            position: relative;
+            overflow: hidden;
+            background: var(--prussian-deep);
+        }
+
+        .hero-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 26, 46, 0.6);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3.5rem, 8vw, 7rem);
+            line-height: 0.95;
+            color: var(--cream);
+            margin-bottom: 2rem;
+            animation: fadeUp 1.2s ease both;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            font-weight: 300;
+            opacity: 0.7;
+        }
+
+        .hero-sub {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            opacity: 0.8;
+            max-width: 500px;
+            margin: 0 auto 3rem;
+            animation: fadeUp 1.2s ease 0.2s both;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            background: var(--cream);
+            color: var(--prussian-deep);
+            padding: 1rem 2.5rem;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            animation: fadeUp 1.2s ease 0.4s both;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(245, 240, 232, 0.2);
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.4;
+            animation: fadeUp 1.2s ease 0.8s both;
+            z-index: 2;
+        }
+
+        .hero-scroll span {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .hero-scroll::after {
+            content: '';
+            width: 1px;
+            height: 40px;
+            background: var(--cream);
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Process Section */
+        .process {
+            padding: 8rem 3rem;
+            background: var(--prussian);
+        }
+
+        .process-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .process h2 {
+            font-size: clamp(2.2rem, 4vw, 3.5rem);
+            margin-bottom: 4rem;
+            color: var(--cream);
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .step {
+            padding: 2rem 1.5rem;
+            border-left: 1px solid rgba(245, 240, 232, 0.1);
+            transition: border-color 0.3s;
+        }
+
+        .step:hover {
+            border-color: var(--gold);
+        }
+
+        .step-number {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 300;
+            color: var(--gold);
+            opacity: 0.6;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .step h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            color: var(--cream);
+            font-weight: 400;
+        }
+
+        .step p {
+            font-size: 0.88rem;
+            line-height: 1.7;
+            opacity: 0.75;
+        }
+
+        /* Workshops */
+        .workshops {
+            padding: 8rem 3rem;
+            background: var(--bone);
+            color: var(--text-dark);
+        }
+
+        .workshops-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .workshops .section-label {
+            color: var(--prussian);
+        }
+
+        .workshops h2 {
+            font-size: clamp(2.2rem, 4vw, 3.5rem);
+            color: var(--prussian);
+            margin-bottom: 4rem;
+        }
+
+        .workshop-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .workshop-card {
+            background: white;
+            padding: 2.5rem 2rem;
+            border: 1px solid var(--cream-dark);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workshop-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--prussian);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+
+        .workshop-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .workshop-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 49, 83, 0.08);
+        }
+
+        .workshop-tag {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .workshop-card h3 {
+            font-size: 1.6rem;
+            color: var(--prussian);
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .workshop-card p {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .workshop-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--cream-dark);
+            font-size: 0.8rem;
+        }
+
+        .workshop-duration {
+            opacity: 0.5;
+        }
+
+        .workshop-price {
+            font-weight: 600;
+            color: var(--prussian);
+        }
+
+        /* What's Included */
+        .included {
+            padding: 6rem 3rem;
+            background: var(--cream);
+            color: var(--text-dark);
+        }
+
+        .included-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .included .section-label {
+            color: var(--prussian);
+        }
+
+        .included h2 {
+            font-size: clamp(2rem, 3.5vw, 3rem);
+            color: var(--prussian);
+            margin-bottom: 3.5rem;
+        }
+
+        .included-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem 2rem;
+        }
+
+        .included-item {
+            padding: 1.5rem 0;
+        }
+
+        .included-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.6;
+        }
+
+        .included-item h4 {
+            font-size: 1.1rem;
+            color: var(--prussian);
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+        }
+
+        .included-item p {
+            font-size: 0.85rem;
+            line-height: 1.7;
+            opacity: 0.65;
+        }
+
+        /* Gallery */
+        .gallery {
+            padding: 8rem 3rem;
+            background: var(--prussian-deep);
+        }
+
+        .gallery-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .gallery h2 {
+            font-size: clamp(2.2rem, 4vw, 3.5rem);
+            color: var(--cream);
+            margin-bottom: 4rem;
+        }
+
+        .ig-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .ig-grid .instagram-media {
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .ig-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 3rem;
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .ig-link:hover {
+            opacity: 1;
+        }
+
+        /* About */
+        .about {
+            padding: 8rem 3rem;
+            background: var(--cream);
+            color: var(--text-dark);
+        }
+
+        .about-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image {
+            aspect-ratio: 3/4;
+            background: linear-gradient(160deg, var(--prussian) 0%, var(--cyan-print) 100%);
+            opacity: 0.8;
+        }
+
+        .about .section-label {
+            color: var(--prussian);
+        }
+
+        .about h2 {
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            color: var(--prussian);
+            margin-bottom: 1.5rem;
+        }
+
+        .about p {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+        }
+
+        /* CTA / Enroll */
+        .enroll {
+            padding: 8rem 3rem;
+            background: var(--prussian);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enroll::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 100%, rgba(42, 122, 181, 0.12) 0%, transparent 60%);
+        }
+
+        .enroll-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .enroll h2 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            color: var(--cream);
+            margin-bottom: 1.5rem;
+        }
+
+        .enroll p {
+            font-size: 1rem;
+            opacity: 0.75;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+        }
+
+        .enroll-cta {
+            display: inline-block;
+            background: var(--cream);
+            color: var(--prussian-deep);
+            padding: 1.1rem 3rem;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .enroll-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(245, 240, 232, 0.15);
+        }
+
+        .enroll-note {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            opacity: 0.4;
+        }
+
+        .waitlist-form {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row input {
+            flex: 1;
+            padding: 0.9rem 1.2rem;
+            border: 1px solid rgba(245, 240, 232, 0.15);
+            background: rgba(245, 240, 232, 0.05);
+            color: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            border-radius: 2px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-row input::placeholder {
+            color: rgba(245, 240, 232, 0.4);
+        }
+
+        .form-row input:focus {
+            border-color: var(--gold);
+        }
+
+        .waitlist-form .enroll-cta {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 3rem 2rem;
+            background: var(--prussian-deep);
+            border-top: 1px solid rgba(245, 240, 232, 0.06);
+        }
+
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            color: var(--cream);
+            opacity: 0.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 0.8rem;
+            opacity: 0.4;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .process-steps { grid-template-columns: repeat(2, 1fr); }
+            .workshop-grid { grid-template-columns: 1fr; }
+            .ig-grid { grid-template-columns: 1fr; }
+            .about-inner { grid-template-columns: 1fr; }
+            .about-image { max-height: 300px; }
+            nav { padding: 1rem 1.5rem; }
+            .nav-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background: rgba(0, 26, 46, 0.97);
+                backdrop-filter: blur(12px);
+                padding: 2rem 1.5rem;
+                gap: 1.5rem;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a { font-size: 1rem; }
+            .nav-cta { text-align: center; }
+        }
+
+        @media (max-width: 600px) {
+            .process-steps { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="nav">
+        <a href="#" class="nav-logo">Cyanite</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#process">Process</a></li>
+            <li><a href="#workshops">Workshops</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#enroll" class="nav-cta">Enroll Now</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <video class="hero-video" autoplay muted loop playsinline poster="poster.jpg">
+            <source src="hero-compressed.mp4" type="video/mp4">
+        </video>
+        <div class="hero-content">
+            <h1>Chemistry.<br>Light.<br><em>Blue.</em></h1>
+            <p class="hero-sub">Learn the ancient art of cyanotype printing. No darkroom needed — just sunlight, chemistry, and curiosity.</p>
+            <a href="#enroll" class="hero-cta">Join a Workshop</a>
+        </div>
+        <div class="hero-scroll">
+            <span>Scroll</span>
+        </div>
+    </section>
+
+    <!-- Process -->
+    <section class="process" id="process">
+        <div class="process-inner">
+            <p class="section-label">The Process</p>
+            <h2>Four steps to your first print</h2>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h4>Coat</h4>
+                    <p>Brush the light-sensitive emulsion onto paper, fabric, or any absorbent surface. Work in dim light.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h4>Compose</h4>
+                    <p>Arrange botanicals, objects, or transparent negatives on your coated surface. This is your image.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h4>Expose</h4>
+                    <p>Place under direct sunlight or UV light. The chemistry reacts where light hits — patience is the developer.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">04</div>
+                    <h4>Rinse</h4>
+                    <p>Wash in water. Unexposed chemistry dissolves, revealing your image in deep Prussian blue.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workshops -->
+    <section class="workshops" id="workshops">
+        <div class="workshops-inner">
+            <p class="section-label">Workshop Formats</p>
+            <h2>Find your session</h2>
+            <div class="workshop-grid">
+                <div class="workshop-card">
+                    <div class="workshop-tag">Beginner</div>
+                    <h3>Introduction</h3>
+                    <p>Your first cyanotype. Learn the chemistry, coat your paper, expose under the sun, and walk away with finished prints. No experience needed.</p>
+                    <div class="workshop-details">
+                        <span class="workshop-duration">3 hours</span>
+                        <span class="workshop-price">IDR 450k</span>
+                    </div>
+                </div>
+                <div class="workshop-card">
+                    <div class="workshop-tag">Intermediate</div>
+                    <h3>Deep Dive</h3>
+                    <p>Multi-session series. Explore toning, fabric printing, wet cyanotype, and digital negatives. Build a body of work across different substrates.</p>
+                    <div class="workshop-details">
+                        <span class="workshop-duration">4 sessions / 12 hours</span>
+                        <span class="workshop-price">IDR 1.6M</span>
+                    </div>
+                </div>
+                <div class="workshop-card">
+                    <div class="workshop-tag">Private</div>
+                    <h3>Group &amp; Events</h3>
+                    <p>Team building, birthday gatherings, creative offsites. We bring the chemistry and materials — you bring the people and the curiosity.</p>
+                    <div class="workshop-details">
+                        <span class="workshop-duration">Custom duration</span>
+                        <span class="workshop-price">On request</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What's Included -->
+    <section class="included" id="included">
+        <div class="included-inner">
+            <p class="section-label">What's Included</p>
+            <h2>Everything you need to print</h2>
+            <div class="included-grid">
+                <div class="included-item">
+                    <div class="included-icon">&#9878;</div>
+                    <h4>Chemistry &amp; materials</h4>
+                    <p>Pre-mixed sensitizer solution, brushes, mixing tools. All prepared fresh for each session.</p>
+                </div>
+                <div class="included-item">
+                    <div class="included-icon">&#9733;</div>
+                    <h4>Substrates</h4>
+                    <p>Watercolor paper, cotton fabric swatches, and experimental surfaces to print on.</p>
+                </div>
+                <div class="included-item">
+                    <div class="included-icon">&#9752;</div>
+                    <h4>Botanicals &amp; objects</h4>
+                    <p>A curated selection of pressed plants, ferns, and objects for composing your prints.</p>
+                </div>
+                <div class="included-item">
+                    <div class="included-icon">&#9751;</div>
+                    <h4>Refreshments</h4>
+                    <p>Tea, coffee, and light snacks. Good printing requires good fuel.</p>
+                </div>
+                <div class="included-item">
+                    <div class="included-icon">&#10064;</div>
+                    <h4>Take-home prints</h4>
+                    <p>Walk away with 3-5 finished cyanotype prints, dried and ready to frame.</p>
+                </div>
+                <div class="included-item">
+                    <div class="included-icon">&#9993;</div>
+                    <h4>Recipe card</h4>
+                    <p>Printed formula and instructions so you can continue the practice at home.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery / Instagram -->
+    <section class="gallery" id="gallery">
+        <div class="gallery-inner">
+            <p class="section-label">Student Work</p>
+            <h2>From our workshops</h2>
+            <div class="ig-grid">
+                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C5akjtvRNqK/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:12px; margin:0; padding:0; width:100%;"></blockquote>
+                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C5NPAQQRyE3/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:12px; margin:0; padding:0; width:100%;"></blockquote>
+                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/C5-qBHWyd4S/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:12px; margin:0; padding:0; width:100%;"></blockquote>
+            </div>
+            <a href="https://www.instagram.com/cyanite.studio/" target="_blank" rel="noopener" class="ig-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+                <span>See more @cyanite.studio</span>
+            </a>
+        </div>
+    </section>
+    <script async src="//www.instagram.com/embed.js"></script>
+
+    <!-- About -->
+    <section class="about" id="about">
+        <div class="about-inner">
+            <div class="about-image"></div>
+            <div>
+                <p class="section-label">About Cyanite</p>
+                <h2>Analog process,<br>contemporary practice</h2>
+                <p>Cyanotype was invented in 1842 by Sir John Herschel. Anna Atkins used it to catalog botanical specimens — creating what many consider the first photobook. We teach this 180-year-old process because it still surprises.</p>
+                <p>No darkroom. No expensive equipment. Just iron salts, sunlight, and water. The simplicity is the point — it strips image-making back to its essence and lets you focus on seeing, composing, and being patient with light.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enroll CTA -->
+    <section class="enroll" id="enroll">
+        <div class="enroll-inner">
+            <h2>Start printing<br>with sunlight</h2>
+            <p>Next workshops open for enrollment. All materials included — bring curiosity and something flat.</p>
+            <form class="waitlist-form" action="https://formspree.io/f/yourformid" method="POST">
+                <div class="form-row">
+                    <input type="text" name="name" placeholder="Your name" required>
+                    <input type="email" name="email" placeholder="Your email" required>
+                </div>
+                <button type="submit" class="enroll-cta">Get Notified for Next Dates</button>
+            </form>
+            <p class="enroll-note">Limited to 8 participants per session. We'll email you when spots open — no spam.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-inner">
+            <span class="footer-logo">Cyanite</span>
+            <ul class="footer-links">
+                <li><a href="https://www.instagram.com/cyanite.studio/" target="_blank" rel="noopener">Instagram</a></li>
+                <li><a href="#">Email</a></li>
+                <li><a href="#">Location</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        // Nav scroll effect
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 80);
+        });
+
+        // Mobile nav toggle
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('open');
+        });
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navToggle.classList.remove('active');
+                navLinks.classList.remove('open');
+            });
+        });
+
+        // Intersection observer for fade-in
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.step, .workshop-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

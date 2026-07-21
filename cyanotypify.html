@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyanotypify — Turn Any Photo Blue</title>
+    <meta name="description" content="Free cyanotype filter. Upload a photo, get a Prussian blue print. No uploads, runs in your browser.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --prussian: #003153;
+            --prussian-deep: #001a2e;
+            --cyan-print: #2a7ab5;
+            --cream: #f5f0e8;
+            --cream-dark: #e8e0d4;
+            --gold: #c9a96e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--prussian-deep);
+            color: var(--cream);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1.5rem;
+        }
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 300;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .subtitle {
+            opacity: 0.6;
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+        .drop-zone {
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 4/3;
+            border: 2px dashed rgba(245, 240, 232, 0.2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--gold);
+            background: rgba(201, 169, 110, 0.05);
+        }
+        .drop-zone.has-image { border: none; cursor: default; }
+        .drop-zone p { opacity: 0.5; font-size: 0.85rem; }
+        .drop-zone .hint { font-size: 0.7rem; opacity: 0.3; margin-top: 0.5rem; }
+        .btn-camera {
+            margin-top: 1rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(245, 240, 232, 0.1);
+            border: 1px solid rgba(245, 240, 232, 0.2);
+            border-radius: 6px;
+            color: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-camera:hover { background: rgba(245, 240, 232, 0.2); }
+        #camPreview {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+        }
+        .drop-zone.camera-active #camPreview { display: block; }
+        .drop-zone.camera-active p,
+        .drop-zone.camera-active .hint,
+        .drop-zone.camera-active .btn-camera { display: none; }
+        .btn-shutter {
+            display: none;
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.8rem 2rem;
+            background: var(--cream);
+            color: var(--prussian-deep);
+            border: none;
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .drop-zone.camera-active .btn-shutter { display: block; }
+        .drop-zone canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+        .drop-zone.has-image canvas { display: block; }
+        .drop-zone.has-image p,
+        .drop-zone.has-image .hint,
+        .drop-zone.has-image .btn-camera { display: none; }
+        .controls {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 2rem;
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .controls.visible { display: flex; }
+        .slider-group label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(245, 240, 232, 0.15);
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--cream);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .btn {
+            flex: 1;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary {
+            background: var(--cream);
+            color: var(--prussian-deep);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--cream);
+            border: 1px solid rgba(245, 240, 232, 0.2);
+        }
+        .back-link {
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            opacity: 0.4;
+            color: var(--cream);
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        .back-link:hover { opacity: 0.8; }
+        .privacy {
+            margin-top: 1rem;
+            font-size: 0.65rem;
+            opacity: 0.3;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cyanotypify</h1>
+    <p class="subtitle">Turn any photo into a cyanotype print. Runs in your browser — nothing leaves your device.</p>
+
+    <div class="drop-zone" id="dropZone">
+        <p>Drop a photo here or click to upload</p>
+        <span class="hint">JPG, PNG, WebP — or use your camera</span>
+        <button class="btn-camera" id="cameraBtn">📷 Take a photo</button>
+        <video id="camPreview" autoplay playsinline></video>
+        <button class="btn-shutter" id="shutterBtn">Capture</button>
+        <canvas id="canvas"></canvas>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" hidden>
+
+    <div class="controls" id="controls">
+        <div class="slider-group">
+            <label>Exposure time</label>
+            <input type="range" id="exposure" min="0" max="100" value="50">
+        </div>
+        <div class="slider-group">
+            <label>Paper tone</label>
+            <input type="range" id="tone" min="0" max="100" value="50">
+        </div>
+        <div class="actions">
+            <button class="btn btn-secondary" id="resetBtn">New photo</button>
+            <button class="btn btn-primary" id="downloadBtn">Download</button>
+        </div>
+    </div>
+
+    <a href="./" class="back-link">&larr; Back to Cyanite Studio</a>
+    <p class="privacy">100% client-side. Your photo never leaves your browser.</p>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const canvas = document.getElementById('canvas');
+        const controls = document.getElementById('controls');
+        const ctx = canvas.getContext('2d');
+        let originalData = null;
+
+        dropZone.addEventListener('click', () => { if (!originalData) fileInput.click(); });
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) loadImage(file);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files[0]) loadImage(e.target.files[0]);
+        });
+
+        function loadImage(file) {
+            const img = new Image();
+            img.onload = () => {
+                const maxW = 1200;
+                const scale = img.width > maxW ? maxW / img.width : 1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                originalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                dropZone.classList.add('has-image');
+                controls.classList.add('visible');
+                applyCyanotype();
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        function applyCyanotype() {
+            if (!originalData) return;
+            const exposure = document.getElementById('exposure').value / 50;
+            const tone = document.getElementById('tone').value / 100;
+
+            const src = originalData.data;
+            const w = canvas.width, h = canvas.height;
+            const out = ctx.createImageData(w, h);
+            const dst = out.data;
+
+            // Realistic cyanotype palette - 5 stops for smoother transitions
+            const deepBlue = [0, 18, 45];
+            const darkBlue = [10, 40, 80];
+            const midBlue = [25, 70, 125];
+            const lightBlue = [70, 130, 175];
+            const paleBlue = [140, 185, 210];
+            const paper = [225 + tone * 20, 218 + tone * 15, 200 + tone * 10];
+
+            const cx = w / 2, cy = h / 2;
+            const maxDist = Math.sqrt(cx * cx + cy * cy);
+
+            for (let i = 0; i < src.length; i += 4) {
+                const px = (i / 4) % w;
+                const py = Math.floor((i / 4) / w);
+
+                // Grayscale
+                let gray = (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114) / 255;
+
+                // Contrast curve (crush midtones like real cyanotype)
+                gray = Math.pow(gray, 1.4);
+                gray = gray < 0.3 ? gray * 0.6 : gray > 0.7 ? 0.5 + (gray - 0.7) * 1.6 : gray;
+                gray = Math.max(0, Math.min(1, gray));
+
+                // Exposure
+                gray = Math.pow(gray, 2.0 / (exposure + 0.4));
+                gray = Math.max(0, Math.min(1, gray));
+
+                // Vignette (uneven coating)
+                const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) / maxDist;
+                const vignette = 1 - dist * 0.3;
+                gray = gray * vignette;
+
+                // Cosine interpolation for smoother transitions
+                function coslerp(a, b, t) {
+                    const ft = (1 - Math.cos(t * Math.PI)) / 2;
+                    return a + (b - a) * ft;
+                }
+
+                // Map to cyanotype color stops (5 stops)
+                let r, g, b;
+                if (gray < 0.15) {
+                    const t = gray / 0.15;
+                    r = coslerp(deepBlue[0], darkBlue[0], t);
+                    g = coslerp(deepBlue[1], darkBlue[1], t);
+                    b = coslerp(deepBlue[2], darkBlue[2], t);
+                } else if (gray < 0.35) {
+                    const t = (gray - 0.15) / 0.2;
+                    r = coslerp(darkBlue[0], midBlue[0], t);
+                    g = coslerp(darkBlue[1], midBlue[1], t);
+                    b = coslerp(darkBlue[2], midBlue[2], t);
+                } else if (gray < 0.6) {
+                    const t = (gray - 0.35) / 0.25;
+                    r = coslerp(midBlue[0], lightBlue[0], t);
+                    g = coslerp(midBlue[1], lightBlue[1], t);
+                    b = coslerp(midBlue[2], lightBlue[2], t);
+                } else if (gray < 0.82) {
+                    const t = (gray - 0.6) / 0.22;
+                    r = coslerp(lightBlue[0], paleBlue[0], t);
+                    g = coslerp(lightBlue[1], paleBlue[1], t);
+                    b = coslerp(lightBlue[2], paleBlue[2], t);
+                } else {
+                    const t = (gray - 0.82) / 0.18;
+                    r = coslerp(paleBlue[0], paper[0], t);
+                    g = coslerp(paleBlue[1], paper[1], t);
+                    b = coslerp(paleBlue[2], paper[2], t);
+                }
+
+                dst[i] = r;
+                dst[i+1] = g;
+                dst[i+2] = b;
+                dst[i+3] = 255;
+            }
+            ctx.putImageData(out, 0, 0);
+
+            // Chemical bleed softness (blur before texture)
+            ctx.filter = 'blur(0.8px)';
+            ctx.drawImage(canvas, 0, 0);
+            ctx.filter = 'none';
+
+            // S-curve contrast pass on the blurred result
+            const blurred = ctx.getImageData(0, 0, w, h);
+            const bd = blurred.data;
+            for (let i = 0; i < bd.length; i += 4) {
+                for (let c = 0; c < 3; c++) {
+                    let v = bd[i + c] / 255;
+                    // Sigmoid S-curve: steeper midtones, blocked shadows
+                    v = 1 / (1 + Math.exp(-10 * (v - 0.5)));
+                    // Blend 30% S-curve with 70% original to keep it subtle
+                    bd[i + c] = Math.round(bd[i + c] * 0.7 + v * 255 * 0.3);
+                }
+            }
+            ctx.putImageData(blurred, 0, 0);
+
+            // Paper texture grain (watercolor fiber)
+            ctx.globalAlpha = 0.06;
+            for (let y = 0; y < h; y += 1) {
+                for (let x = 0; x < w; x += 1) {
+                    if (Math.random() > 0.7) {
+                        const v = Math.random() * 255;
+                        ctx.fillStyle = `rgb(${v},${v},${v})`;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+
+            // Larger paper fiber strands
+            ctx.globalAlpha = 0.03;
+            for (let i = 0; i < 200; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                const len = Math.random() * 15 + 5;
+                const angle = Math.random() * Math.PI;
+                ctx.strokeStyle = Math.random() > 0.5 ? '#fff' : '#000';
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+                ctx.stroke();
+            }
+
+            // Brush stroke edges (rough coating border)
+            ctx.globalAlpha = 1;
+            const borderW = w * 0.03;
+            const gradient = ctx.createLinearGradient(0, 0, borderW, 0);
+            gradient.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, borderW, h);
+
+            const gradientR = ctx.createLinearGradient(w, 0, w - borderW, 0);
+            gradientR.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradientR.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradientR;
+            ctx.fillRect(w - borderW, 0, borderW, h);
+
+            const gradientT = ctx.createLinearGradient(0, 0, 0, borderW);
+            gradientT.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradientT.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradientT;
+            ctx.fillRect(0, 0, w, borderW);
+
+            const gradientB = ctx.createLinearGradient(0, h, 0, h - borderW);
+            gradientB.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradientB.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradientB;
+            ctx.fillRect(0, h - borderW, w, borderW);
+            ctx.globalAlpha = 1;
+        }
+
+        document.getElementById('exposure').addEventListener('input', applyCyanotype);
+        document.getElementById('tone').addEventListener('input', applyCyanotype);
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'cyanotype.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.92);
+            link.click();
+        });
+
+        const cameraBtn = document.getElementById('cameraBtn');
+        const camPreview = document.getElementById('camPreview');
+        const shutterBtn = document.getElementById('shutterBtn');
+        let stream = null;
+
+        cameraBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 } }
+                });
+                camPreview.srcObject = stream;
+                dropZone.classList.add('camera-active');
+            } catch (err) {
+                alert('Camera access denied or unavailable');
+            }
+        });
+
+        shutterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            canvas.width = camPreview.videoWidth;
+            canvas.height = camPreview.videoHeight;
+            ctx.drawImage(camPreview, 0, 0);
+            originalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            // Stop camera
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            dropZone.classList.remove('camera-active');
+            dropZone.classList.add('has-image');
+            controls.classList.add('visible');
+            applyCyanotype();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            originalData = null;
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            dropZone.classList.remove('has-image', 'camera-active');
+            controls.classList.remove('visible');
+            fileInput.value = '';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+</body>
+</html>
