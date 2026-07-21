@@ -192,6 +192,53 @@
             opacity: 0.3;
             text-align: center;
         }
+        .methodology {
+            margin-top: 2.5rem;
+            max-width: 600px;
+            font-size: 0.75rem;
+            opacity: 0.5;
+            line-height: 1.7;
+        }
+        .methodology summary {
+            cursor: pointer;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.7rem;
+        }
+        .methodology ul {
+            margin: 1rem 0;
+            padding-left: 1.2rem;
+        }
+        .methodology li {
+            margin-bottom: 0.6rem;
+        }
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(245, 240, 232, 0.2);
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            background: transparent;
+            color: var(--cream);
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: rgba(245, 240, 232, 0.1);
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -209,9 +256,17 @@
     <input type="file" id="fileInput" accept="image/*" hidden>
 
     <div class="controls" id="controls">
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="modeNegative">Negative</button>
+            <button class="mode-btn" id="modePhotogram">Photogram</button>
+        </div>
         <div class="slider-group">
             <label>Exposure time</label>
             <input type="range" id="exposure" min="0" max="100" value="50">
+        </div>
+        <div class="slider-group" id="thresholdGroup" style="display:none;">
+            <label>Threshold</label>
+            <input type="range" id="threshold" min="0" max="100" value="50">
         </div>
         <div class="slider-group">
             <label>Paper tone</label>
@@ -226,6 +281,20 @@
     <a href="./" class="back-link">&larr; Back to Cyanite Studio</a>
     <p class="privacy">100% client-side. Your photo never leaves your browser.</p>
 
+    <details class="methodology">
+        <summary>Methodology</summary>
+        <p>This filter simulates cyanotype printing using a first-principles photochemical model, not an arbitrary color overlay.</p>
+        <ul>
+            <li><strong>Characteristic curve</strong> — Tone mapping follows the S-shaped response curve of iron-salt photochemistry: quadratic toe (shadow compression), linear midtones, quadratic shoulder (highlight compression). Shadows are bounded by Dmax (maximum Prussian blue density), highlights by Dmin (paper tone).</li>
+            <li><strong>Exposure</strong> — Shifts the curve along the log-exposure axis, simulating UV duration (20min → 150min+). Higher exposure pushes more tonal values toward blue.</li>
+            <li><strong>Paper tone</strong> — Models the physical substrate (cotton rag / watercolor paper). Warm cream base, adjustable via the tone slider to simulate different paper stocks.</li>
+            <li><strong>Vignette</strong> — Simulates uneven hand-coating of emulsion, where edges receive less chemistry and therefore less density.</li>
+            <li><strong>Chemical bleed</strong> — Gaussian softness models how iron salts diffuse into paper fibers during development, preventing razor-sharp edges.</li>
+            <li><strong>Paper texture</strong> — Layered noise at two scales (fine grain + fiber strands) simulates watercolor paper fiber showing through the emulsion.</li>
+        </ul>
+        <p>No machine learning, no server processing, no tokens. Pure deterministic image processing running entirely in your browser via the Canvas API.</p>
+    </details>
+
     <script>
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -233,6 +302,27 @@
         const controls = document.getElementById('controls');
         const ctx = canvas.getContext('2d');
         let originalData = null;
+        let mode = 'negative';
+
+        // Mode toggle
+        const modeNegative = document.getElementById('modeNegative');
+        const modePhotogram = document.getElementById('modePhotogram');
+        const thresholdGroup = document.getElementById('thresholdGroup');
+
+        modeNegative.addEventListener('click', () => {
+            mode = 'negative';
+            modeNegative.classList.add('active');
+            modePhotogram.classList.remove('active');
+            thresholdGroup.style.display = 'none';
+            if (originalData) applyCyanotype();
+        });
+        modePhotogram.addEventListener('click', () => {
+            mode = 'photogram';
+            modePhotogram.classList.add('active');
+            modeNegative.classList.remove('active');
+            thresholdGroup.style.display = 'block';
+            if (originalData) applyCyanotype();
+        });
 
         dropZone.addEventListener('click', () => { if (!originalData) fileInput.click(); });
         dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -273,13 +363,40 @@
             const out = ctx.createImageData(w, h);
             const dst = out.data;
 
-            // Realistic cyanotype palette - 5 stops for smoother transitions
-            const deepBlue = [0, 18, 45];
-            const darkBlue = [10, 40, 80];
-            const midBlue = [25, 70, 125];
-            const lightBlue = [70, 130, 175];
-            const paleBlue = [120, 160, 185];
-            const paper = [195 + tone * 15, 185 + tone * 12, 165 + tone * 8];
+            // Paper (Dmin) and Dmax shared by both modes
+            const paperR = 210 + tone * 25, paperG = 200 + tone * 18, paperB = 180 + tone * 10;
+            const dmaxR = 12, dmaxG = 32, dmaxB = 68;
+
+            if (mode === 'photogram') {
+                // Photogram: binary silhouette with soft edges
+                const thresh = document.getElementById('threshold').value / 100;
+                const cutoff = thresh * 0.8 + 0.1;
+                const softness = 0.08;
+
+                for (let i = 0; i < src.length; i += 4) {
+                    let lum = (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114) / 255;
+
+                    // Soft threshold — sigmoid around cutoff point
+                    let mask = 1 / (1 + Math.exp(-(lum - cutoff) / softness));
+
+                    // mask: 0 = blocked (paper), 1 = exposed (blue)
+                    // Invert: bright subject = paper, dark background = blue
+                    const blue = 1 - mask;
+
+                    dst[i]     = paperR + (dmaxR - paperR) * blue;
+                    dst[i + 1] = paperG + (dmaxG - paperG) * blue;
+                    dst[i + 2] = paperB + (dmaxB - paperB) * blue;
+                    dst[i + 3] = 255;
+                }
+                ctx.putImageData(out, 0, 0);
+            } else {
+                // Negative mode: characteristic curve model
+
+            // Characteristic curve parameters
+            const gamma = 1.8;           // contrast in linear region
+            const toeLength = 0.15;      // shadow compression zone
+            const shoulderLength = 0.2;  // highlight compression zone
+            const shoulderStart = 1 - shoulderLength;
 
             const cx = w / 2, cy = h / 2;
             const maxDist = Math.sqrt(cx * cx + cy * cy);
@@ -288,64 +405,43 @@
                 const px = (i / 4) % w;
                 const py = Math.floor((i / 4) / w);
 
-                // Grayscale
-                let gray = (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114) / 255;
+                // Luminance (perceptual)
+                let lum = (src[i] * 0.299 + src[i+1] * 0.587 + src[i+2] * 0.114) / 255;
 
-                // Contrast curve (crush midtones like real cyanotype)
-                gray = Math.pow(gray, 1.4);
-                gray = gray < 0.3 ? gray * 0.6 : gray > 0.7 ? 0.5 + (gray - 0.7) * 1.6 : gray;
-                gray = Math.max(0, Math.min(1, gray));
+                // Exposure shift (moves curve along log-exposure axis)
+                lum = Math.pow(lum, 2.0 / (exposure + 0.4));
+                lum = Math.max(0, Math.min(1, lum));
 
-                // Exposure
-                gray = Math.pow(gray, 2.0 / (exposure + 0.4));
-                gray = Math.max(0, Math.min(1, gray));
-
-                // Vignette (uneven coating)
-                const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) / maxDist;
-                const vignette = 1 - dist * 0.3;
-                gray = gray * vignette;
-
-                // Cosine interpolation for smoother transitions
-                function coslerp(a, b, t) {
-                    const ft = (1 - Math.cos(t * Math.PI)) / 2;
-                    return a + (b - a) * ft;
-                }
-
-                // Map to cyanotype color stops (5 stops)
-                let r, g, b;
-                if (gray < 0.15) {
-                    const t = gray / 0.15;
-                    r = coslerp(deepBlue[0], darkBlue[0], t);
-                    g = coslerp(deepBlue[1], darkBlue[1], t);
-                    b = coslerp(deepBlue[2], darkBlue[2], t);
-                } else if (gray < 0.35) {
-                    const t = (gray - 0.15) / 0.2;
-                    r = coslerp(darkBlue[0], midBlue[0], t);
-                    g = coslerp(darkBlue[1], midBlue[1], t);
-                    b = coslerp(darkBlue[2], midBlue[2], t);
-                } else if (gray < 0.6) {
-                    const t = (gray - 0.35) / 0.25;
-                    r = coslerp(midBlue[0], lightBlue[0], t);
-                    g = coslerp(midBlue[1], lightBlue[1], t);
-                    b = coslerp(midBlue[2], lightBlue[2], t);
-                } else if (gray < 0.82) {
-                    const t = (gray - 0.6) / 0.22;
-                    r = coslerp(lightBlue[0], paleBlue[0], t);
-                    g = coslerp(lightBlue[1], paleBlue[1], t);
-                    b = coslerp(lightBlue[2], paleBlue[2], t);
+                // Characteristic curve with toe and shoulder
+                let density;
+                if (lum < toeLength) {
+                    // Toe: shadows compress (quadratic ease-in)
+                    const t = lum / toeLength;
+                    density = t * t * toeLength * gamma;
+                } else if (lum > shoulderStart) {
+                    // Shoulder: highlights compress (quadratic ease-out)
+                    const linearEnd = shoulderStart * gamma;
+                    const t = (lum - shoulderStart) / shoulderLength;
+                    const remaining = 1 - linearEnd;
+                    density = linearEnd + remaining * (1 - (1 - t) * (1 - t));
                 } else {
-                    const t = (gray - 0.82) / 0.18;
-                    r = coslerp(paleBlue[0], paper[0], t);
-                    g = coslerp(paleBlue[1], paper[1], t);
-                    b = coslerp(paleBlue[2], paper[2], t);
+                    // Linear region: proportional response
+                    density = lum * gamma;
                 }
+                density = Math.max(0, Math.min(1, density));
 
-                dst[i] = r;
-                dst[i+1] = g;
-                dst[i+2] = b;
-                dst[i+3] = 255;
+                // Vignette (uneven coating - edges get more chemistry)
+                const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) / maxDist;
+                density = density * (1 - dist * 0.15);
+
+                // Map density to color: 0 = Dmax (deep blue), 1 = paper (cream)
+                dst[i]     = dmaxR + (paperR - dmaxR) * density;
+                dst[i + 1] = dmaxG + (paperG - dmaxG) * density;
+                dst[i + 2] = dmaxB + (paperB - dmaxB) * density;
+                dst[i + 3] = 255;
             }
             ctx.putImageData(out, 0, 0);
+            } // end negative mode
 
             // Chemical bleed softness (blur before texture)
             ctx.filter = 'blur(0.8px)';
@@ -366,56 +462,102 @@
             }
             ctx.putImageData(blurred, 0, 0);
 
-            // Paper texture grain (watercolor fiber)
-            ctx.globalAlpha = 0.06;
-            for (let y = 0; y < h; y += 1) {
-                for (let x = 0; x < w; x += 1) {
-                    if (Math.random() > 0.7) {
-                        const v = Math.random() * 255;
-                        ctx.fillStyle = `rgb(${v},${v},${v})`;
-                        ctx.fillRect(x, y, 1, 1);
+            // Chemistry pooling — uneven blue density (watercolor-like variation)
+            const pooled = ctx.getImageData(0, 0, w, h);
+            const pd = pooled.data;
+            // Generate large-scale blobs to simulate uneven coating
+            const blobs = [];
+            for (let i = 0; i < 8; i++) {
+                blobs.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * Math.max(w, h) * 0.4 + w * 0.15,
+                    strength: (Math.random() - 0.5) * 0.12
+                });
+            }
+            for (let i = 0; i < pd.length; i += 4) {
+                const px = (i / 4) % w;
+                const py = Math.floor((i / 4) / w);
+                const lightness = (pd[i] + pd[i+1] + pd[i+2]) / (3 * 255);
+
+                // Only modulate dark/blue areas
+                if (lightness < 0.45) {
+                    let poolEffect = 0;
+                    for (const blob of blobs) {
+                        const dx = px - blob.x, dy = py - blob.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < blob.r) {
+                            const falloff = 1 - (dist / blob.r);
+                            poolEffect += blob.strength * falloff * falloff;
+                        }
                     }
+                    const darkAmount = (0.45 - lightness) / 0.45;
+                    const mod = poolEffect * darkAmount * 255;
+                    pd[i]     = Math.min(255, Math.max(0, pd[i] + mod * 0.3));
+                    pd[i + 1] = Math.min(255, Math.max(0, pd[i + 1] + mod * 0.6));
+                    pd[i + 2] = Math.min(255, Math.max(0, pd[i + 2] + mod));
                 }
             }
+            ctx.putImageData(pooled, 0, 0);
 
-            // Larger paper fiber strands
-            ctx.globalAlpha = 0.03;
-            for (let i = 0; i < 200; i++) {
+            // Paper texture - only visible where paper is exposed (light areas)
+            const textured = ctx.getImageData(0, 0, w, h);
+            const td = textured.data;
+            for (let i = 0; i < td.length; i += 4) {
+                // How much "paper" is showing (lightness = paper visible)
+                const lightness = (td[i] + td[i+1] + td[i+2]) / (3 * 255);
+
+                // Only add texture proportional to lightness
+                if (lightness > 0.25) {
+                    const paperAmount = (lightness - 0.25) / 0.75;
+                    // Subtle warm variation (not uniform noise)
+                    const variation = (Math.random() - 0.5) * 18 * paperAmount;
+                    td[i]     = Math.min(255, Math.max(0, td[i] + variation * 1.1));
+                    td[i + 1] = Math.min(255, Math.max(0, td[i + 1] + variation));
+                    td[i + 2] = Math.min(255, Math.max(0, td[i + 2] + variation * 0.7));
+                }
+            }
+            ctx.putImageData(textured, 0, 0);
+
+            // Sparse fiber strands (only in light areas)
+            ctx.globalAlpha = 0.025;
+            for (let i = 0; i < 300; i++) {
                 const x = Math.random() * w;
                 const y = Math.random() * h;
-                const len = Math.random() * 15 + 5;
-                const angle = Math.random() * Math.PI;
-                ctx.strokeStyle = Math.random() > 0.5 ? '#fff' : '#000';
-                ctx.lineWidth = 0.5;
+                const len = Math.random() * 20 + 8;
+                const angle = Math.random() * Math.PI * 0.3 + Math.PI * 0.35;
+                ctx.strokeStyle = `rgba(180,170,150,${Math.random() * 0.5})`;
+                ctx.lineWidth = Math.random() * 0.8 + 0.2;
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
                 ctx.stroke();
             }
+            ctx.globalAlpha = 1;
 
             // Brush stroke edges (rough coating border)
             ctx.globalAlpha = 1;
             const borderW = w * 0.03;
             const gradient = ctx.createLinearGradient(0, 0, borderW, 0);
-            gradient.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradient.addColorStop(0, `rgba(${paperR},${paperG},${paperB},0.9)`);
             gradient.addColorStop(1, 'transparent');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, borderW, h);
 
             const gradientR = ctx.createLinearGradient(w, 0, w - borderW, 0);
-            gradientR.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradientR.addColorStop(0, `rgba(${paperR},${paperG},${paperB},0.9)`);
             gradientR.addColorStop(1, 'transparent');
             ctx.fillStyle = gradientR;
             ctx.fillRect(w - borderW, 0, borderW, h);
 
             const gradientT = ctx.createLinearGradient(0, 0, 0, borderW);
-            gradientT.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradientT.addColorStop(0, `rgba(${paperR},${paperG},${paperB},0.9)`);
             gradientT.addColorStop(1, 'transparent');
             ctx.fillStyle = gradientT;
             ctx.fillRect(0, 0, w, borderW);
 
             const gradientB = ctx.createLinearGradient(0, h, 0, h - borderW);
-            gradientB.addColorStop(0, `rgba(${paper[0]},${paper[1]},${paper[2]},0.9)`);
+            gradientB.addColorStop(0, `rgba(${paperR},${paperG},${paperB},0.9)`);
             gradientB.addColorStop(1, 'transparent');
             ctx.fillStyle = gradientB;
             ctx.fillRect(0, h - borderW, w, borderW);
@@ -424,6 +566,7 @@
 
         document.getElementById('exposure').addEventListener('input', applyCyanotype);
         document.getElementById('tone').addEventListener('input', applyCyanotype);
+        document.getElementById('threshold').addEventListener('input', applyCyanotype);
 
         document.getElementById('downloadBtn').addEventListener('click', () => {
             const link = document.createElement('a');
